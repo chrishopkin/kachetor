@@ -1,19 +1,22 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinKsp)
     alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.kotlinKsp)
 }
+
+group = property("GROUP").toString()
+version = property("VERSION_NAME").toString()
 
 kotlin {
     applyDefaultHierarchyTemplate()
 
     androidTarget {
         publishLibraryVariants("release")
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = JavaVersion.VERSION_17.toString()
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -46,7 +49,7 @@ dependencies {
 
 android {
     namespace = "com.vipulasri.kachetor"
-    compileSdk = 34
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
     }

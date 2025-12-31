@@ -108,6 +108,28 @@ class KachetorStorage internal constructor(
         }
     }
 
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        runCatching {
+            persistentCache?.remove(url = url, varyKeys = varyKeys) ?: run {
+                logInMemoryUsage("error creating persistent cache.")
+                inMemoryCache.remove(url = url, varyKeys = varyKeys)
+            }
+        }.onFailure { exception ->
+            logInMemoryUsage(exception.message ?: "error removing response from persistence storage")
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        runCatching {
+            persistentCache?.removeAll(url = url) ?: run {
+                logInMemoryUsage("error creating persistent cache.")
+                inMemoryCache.removeAll(url = url)
+            }
+        }.onFailure { exception ->
+            logInMemoryUsage(exception.message ?: "error removing response from persistence storage")
+        }
+    }
+
     private fun logInMemoryUsage(message: String) {
         println("$TAG: Using in-memory cache, $message")
     }

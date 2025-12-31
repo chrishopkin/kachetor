@@ -74,6 +74,37 @@ internal class PersistentCache internal constructor(
         return data ?: emptySet()
     }
 
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        val cache = getOkioFileCache()
+        val key = url.toString()
+
+        val existing = cache.read(key)
+        if (existing == null) {
+            cache.close()
+            return
+        }
+
+        val remaining = existing.filterNot { responseData ->
+            varyKeys.all { (key, value) ->
+                responseData.varyKeys[key] == value
+            }
+        }
+
+        if (remaining.isEmpty()) {
+            cache.remove(key)
+        } else {
+            cache.write(key, remaining)
+        }
+
+        cache.close()
+    }
+
+    override suspend fun removeAll(url: Url) {
+        val cache = getOkioFileCache()
+        cache.remove(key = url.toString())
+        cache.close()
+    }
+
     private suspend fun OkioFileKache.write(
         key: String,
         caches: List<CachedResponseData>

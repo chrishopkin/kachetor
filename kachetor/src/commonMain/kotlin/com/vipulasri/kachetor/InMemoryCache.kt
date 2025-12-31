@@ -42,7 +42,24 @@ internal class InMemoryCache : CacheStorage {
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> {
-        return store.getOrElse(key = url, defaultValue = { emptySet() })
+        return store[url]?.toSet() ?: emptySet()
     }
 
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+        val cache = store[url] ?: return
+
+        cache.removeAll { responseData ->
+            varyKeys.all { (key, value) ->
+                responseData.varyKeys[key] == value
+            }
+        }
+
+        if (cache.isEmpty()) {
+            store.remove(url)
+        }
+    }
+
+    override suspend fun removeAll(url: Url) {
+        store.remove(key = url)
+    }
 }
